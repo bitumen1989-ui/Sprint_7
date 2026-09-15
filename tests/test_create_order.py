@@ -35,3 +35,6 @@ class TestCreateOrder:
 
         assert response.status_code == 201
         assert "track" in response.json()
+
+        # teardown: отменяем созданный заказ
+        order_api.cancel(response.json()["track"])
