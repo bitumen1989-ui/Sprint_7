@@ -1,6 +1,8 @@
 import allure
 import pytest
 
+from api.order_api import OrderApi
+
 
 @allure.feature("Создание заказа")
 class TestCreateOrder:
@@ -12,12 +14,13 @@ class TestCreateOrder:
             pytest.param(["BLACK"], id="BLACK"),
             pytest.param(["GREY"], id="GREY"),
             pytest.param(["BLACK", "GREY"], id="BLACK_AND_GREY"),
-            pytest.param(None, id="NO_COLOR"),
+            pytest.param([], id="NO_COLOR"),
         ],
     )
     @allure.title("Создание заказа с цветом: {color}")
-    def test_create_order_with_color(self, order_api, color):
+    def test_create_order_with_color(self, color):
         """Заказ создаётся с любым набором цветов. В теле есть track."""
+        api = OrderApi()
         payload = {
             "firstName": "Test",
             "lastName": "Tester",
@@ -27,14 +30,13 @@ class TestCreateOrder:
             "rentTime": 1,
             "deliveryDate": "2026-01-01",
             "comment": "test order",
+            "color": color,
         }
-        if color is not None:
-            payload["color"] = color
 
-        response = order_api.create(payload)
+        response = api.create(payload)
 
         assert response.status_code == 201
         assert "track" in response.json()
 
         # teardown: отменяем созданный заказ
-        order_api.cancel(response.json()["track"])
+        api.cancel(response.json()["track"])
